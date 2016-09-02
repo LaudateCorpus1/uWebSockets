@@ -121,34 +121,30 @@ void WebSocket::handleFragment(const char *fragment, size_t length, OpCode opCod
             socketData->pmd->setInput((char *) fragment, length);
             size_t bufferSpace;
             Error inflateErr;
-            try {
-                while (!(bufferSpace = socketData->pmd->inflate(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE, &inflateErr))) {
-                  socketData->buffer.append(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE);
-                }
-                if (inflateErr != ERR_NONE) {
-                  goto inflate_fail;
-                }
 
-                if (!remainingBytes && fin) {
-                    unsigned char tail[4] = {0, 0, 255, 255};
-                    socketData->pmd->setInput((char *) tail, 4);
-                    if (!socketData->pmd->inflate(socketData->server->inflateBuffer + Server::LARGE_BUFFER_SIZE - bufferSpace, bufferSpace, &inflateErr)) {
-                        if (inflateErr != ERR_NONE) {
-                          goto inflate_fail;
-                        }
+            while (!(bufferSpace = socketData->pmd->inflate(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE, &inflateErr))) {
+              socketData->buffer.append(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE);
+            }
+            if (inflateErr != ERR_NONE) {
+              goto inflate_fail;
+            }
 
-                        socketData->buffer.append(socketData->server->inflateBuffer + Server::LARGE_BUFFER_SIZE - bufferSpace, bufferSpace);
-                        while (!(bufferSpace = socketData->pmd->inflate(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE, &inflateErr))) {
-                            socketData->buffer.append(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE);
-                        }
-                        if (inflateErr != ERR_NONE) {
-                          goto inflate_fail;
-                        }
+            if (!remainingBytes && fin) {
+                unsigned char tail[4] = {0, 0, 255, 255};
+                socketData->pmd->setInput((char *) tail, 4);
+                if (!socketData->pmd->inflate(socketData->server->inflateBuffer + Server::LARGE_BUFFER_SIZE - bufferSpace, bufferSpace, &inflateErr)) {
+                    if (inflateErr != ERR_NONE) {
+                      goto inflate_fail;
+                    }
+
+                    socketData->buffer.append(socketData->server->inflateBuffer + Server::LARGE_BUFFER_SIZE - bufferSpace, bufferSpace);
+                    while (!(bufferSpace = socketData->pmd->inflate(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE, &inflateErr))) {
+                        socketData->buffer.append(socketData->server->inflateBuffer, Server::LARGE_BUFFER_SIZE);
+                    }
+                    if (inflateErr != ERR_NONE) {
+                      goto inflate_fail;
                     }
                 }
-            } catch (...) {
-                close(true, 1006);
-                return;
             }
 
             fragment = socketData->server->inflateBuffer;
