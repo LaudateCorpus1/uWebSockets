@@ -291,8 +291,9 @@ size_t Server::compress(char *src, size_t srcLength, char *dst)
     }
 }
 
-SSLContext::SSLContext(std::string certChainFileName, std::string keyFileName)
+SSLContext::SSLContext(std::string certChainFileName, std::string keyFileName, Error* outError)
 {
+    *outError = ERR_NONE;
     static bool first = true;
     if (first) {
         SSL_library_init();
@@ -304,16 +305,21 @@ SSLContext::SSLContext(std::string certChainFileName, std::string keyFileName)
 
     sslContext = SSL_CTX_new(SSLv23_server_method());
     if (!sslContext) {
-        throw ERR_SSL;
+        goto fail;
     }
 
     SSL_CTX_set_options(sslContext, SSL_OP_NO_SSLv3);
 
     if (SSL_CTX_use_certificate_chain_file(sslContext, certChainFileName.c_str()) != 1) {
-        throw ERR_SSL;
+        goto fail;
     } else if (SSL_CTX_use_PrivateKey_file(sslContext, keyFileName.c_str(), SSL_FILETYPE_PEM) != 1) {
-        throw ERR_SSL;
+        goto fail;
     }
+    return;
+
+fail:
+    *outError = ERR_SSL;
+    sslContext = nullptr;
 }
 
 SSLContext::SSLContext(const SSLContext &other)

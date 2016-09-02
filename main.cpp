@@ -14,8 +14,14 @@ int main()
 {
     try {
         // set up ssl
+        Error sslContextError;
         SSLContext sslContext("/home/alexhultman/uws-connections-dropped/secrets/cert.pem",
-                              "/home/alexhultman/uws-connections-dropped/secrets/key.pem");
+                              "/home/alexhultman/uws-connections-dropped/secrets/key.pem",
+                              &sslContextError);
+
+        if (sslContextError != ERR_NONE) {
+          goto fail;
+        }
 
         // our listening server
         EventSystem es(MASTER);
@@ -98,5 +104,9 @@ int main()
         cout << "ERR_LISTEN" << endl;
     }
 
+    return 0;
+
+fail:
+    cout << "ERR_LISTEN" << endl;
     return 0;
 }

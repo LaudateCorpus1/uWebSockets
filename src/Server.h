@@ -15,6 +15,7 @@
 namespace uWS {
 
 enum Error {
+    ERR_NONE = 0,
     ERR_LISTEN,
     ERR_SSL,
     ERR_ZLIB
@@ -32,7 +33,7 @@ class WIN32_EXPORT SSLContext {
 private:
     SSL_CTX *sslContext = nullptr;
 public:
-    SSLContext(std::string certChainFileName, std::string keyFileName);
+    SSLContext(std::string certChainFileName, std::string keyFileName, Error* outError);
     SSLContext() = default;
     SSLContext(const SSLContext &other);
     ~SSLContext();
