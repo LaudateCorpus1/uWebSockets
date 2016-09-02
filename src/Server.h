@@ -11,15 +11,9 @@
 
 #include "WebSocket.h"
 #include "EventSystem.h"
+#include "Errors.h"
 
 namespace uWS {
-
-enum Error {
-    ERR_NONE = 0,
-    ERR_LISTEN,
-    ERR_SSL,
-    ERR_ZLIB
-};
 
 enum Options : unsigned int {
     NO_OPTIONS = 0,
