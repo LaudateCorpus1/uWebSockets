@@ -11,7 +11,12 @@ int main()
 {
     try {
         EventSystem es(MASTER);
-        Server server(es, 3000, PERMESSAGE_DEFLATE, 0);
+        Error err;
+        Server server(es, &err, 3000, PERMESSAGE_DEFLATE, 0);
+        if (err != ERR_NONE) {
+          goto fail;
+        }
+
         server.onConnection([](WebSocket socket) {
 
         });
@@ -29,5 +34,9 @@ int main()
         cout << "ERR_LISTEN" << endl;
     }
 
+    return 0;
+
+fail:
+    cerr << "ERR_LISTEN" << endl;
     return 0;
 }

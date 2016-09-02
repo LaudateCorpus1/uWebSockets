@@ -14,21 +14,27 @@ int main()
 {
     try {
         // set up ssl
-        Error sslContextError;
+        Error err;
         SSLContext sslContext("/home/alexhultman/uws-connections-dropped/secrets/cert.pem",
                               "/home/alexhultman/uws-connections-dropped/secrets/key.pem",
-                              &sslContextError);
+                              &err);
 
-        if (sslContextError != ERR_NONE) {
+        if (err != ERR_NONE) {
           goto fail;
         }
 
         // our listening server
         EventSystem es(MASTER);
-        Server server(es, 3000, 0, 0/*, sslContext*/);
+        Server server(es, &err, 3000, 0, 0/*, sslContext*/);
+        if (err != ERR_NONE) {
+          goto fail;
+        }
 
         EventSystem wes(WORKER);
-        Server worker(wes, 0, PERMESSAGE_DEFLATE | SERVER_NO_CONTEXT_TAKEOVER | CLIENT_NO_CONTEXT_TAKEOVER, 0);
+        Server worker(wes, &err, 0, PERMESSAGE_DEFLATE | SERVER_NO_CONTEXT_TAKEOVER | CLIENT_NO_CONTEXT_TAKEOVER, 0);
+        if (err != ERR_NONE) {
+          goto fail;
+        }
 
         server.onUpgrade([&worker](uv_os_sock_t fd, const char *secKey, void *ssl, const char *extensions, size_t extensionsLength) {
             // transfer connection to one of our worker servers

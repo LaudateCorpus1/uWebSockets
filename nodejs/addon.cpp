@@ -28,10 +28,12 @@ enum {
 Persistent<Object> persistentTicket;
 
 void Server(const FunctionCallbackInfo<Value> &args) {
-    if (args.IsConstructCall()) {
-        try {
-            EventSystem *es = new EventSystem(MASTER);
-            args.This()->SetAlignedPointerInInternalField(0, new uWS::Server(*es, args[0]->IntegerValue(), args[1]->IntegerValue(), args[2]->IntegerValue()));
+  if (args.IsConstructCall()) {
+        EventSystem *es = new EventSystem(MASTER);
+        Error serverError;
+        uWS::Server *server = new uWS::Server(*es, &serverError, args[0]->IntegerValue(), args[1]->IntegerValue(), args[2]->IntegerValue());
+        if (serverError == ERR_NONE) {
+            args.This()->SetAlignedPointerInInternalField(0, server);
             args.This()->SetAlignedPointerInInternalField(1, es);
 
             // todo: these needs to be removed on destruction
@@ -40,7 +42,7 @@ void Server(const FunctionCallbackInfo<Value> &args) {
             args.This()->SetAlignedPointerInInternalField(MESSAGE_CALLBACK, new Persistent<Function>);
             args.This()->SetAlignedPointerInInternalField(PING_CALLBACK, new Persistent<Function>);
             args.This()->SetAlignedPointerInInternalField(PONG_CALLBACK, new Persistent<Function>);
-        } catch (...) {
+        } else {
             args.This()->Set(String::NewFromUtf8(args.GetIsolate(), "error"), Boolean::New(args.GetIsolate(), true));
         }
         args.GetReturnValue().Set(args.This());

@@ -102,7 +102,7 @@ private:
     std::function<void(WebSocket, char *, size_t)> pingCallback;
     std::function<void(WebSocket, char *, size_t)> pongCallback;
 public:
-    Server(EventSystem &es, int port = 0, unsigned int options = 0, unsigned int maxPayload = 1048576, SSLContext sslContext = SSLContext());
+    Server(EventSystem &es, Error* outError, int port = 0, unsigned int options = 0, unsigned int maxPayload = 1048576, SSLContext sslContext = SSLContext());
     ~Server();
     Server(const Server &server) = delete;
     Server &operator=(const Server &server) = delete;

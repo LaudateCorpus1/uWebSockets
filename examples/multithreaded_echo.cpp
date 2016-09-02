@@ -18,7 +18,11 @@ int main()
     try {
         // you need at least one server listening to a port
         EventSystem es(MASTER);
-        Server server(es, 3000);
+        Error err;
+        Server server(es, &err, 3000);
+        if (err != ERR_NONE) {
+          goto fail;
+        }
 
         server.onUpgrade([](uv_os_fd_t fd, const char *secKey, void *ssl, const char *extensions, size_t extensionsLength) {
             // we transfer the connection to one of the other servers
@@ -29,23 +33,25 @@ int main()
         for (int i = 0; i < THREADS; i++) {
             new thread([i]{
                 EventSystem tes(WORKER);
-                threadedServer[i] = new Server(tes, 0);
+                Error threadedServerError;
+                threadedServer[i] = new Server(tes, &threadedServerError, 0);
+                if (threadedServerError == ERR_NONE) {
+                    // register our events
+                    threadedServer[i]->onConnection([i](WebSocket socket) {
+                        cout << "Connection on thread " << i << endl;
+                    });
 
-                // register our events
-                threadedServer[i]->onConnection([i](WebSocket socket) {
-                    cout << "Connection on thread " << i << endl;
-                });
+                    threadedServer[i]->onDisconnection([i](WebSocket socket, int code, char *message, size_t length) {
+                        cout << "Disconnection on thread " << i << endl;
+                    });
 
-                threadedServer[i]->onDisconnection([i](WebSocket socket, int code, char *message, size_t length) {
-                    cout << "Disconnection on thread " << i << endl;
-                });
+                    threadedServer[i]->onMessage([i](WebSocket socket, char *message, size_t length, OpCode opCode) {
+                        cout << "Message on thread " << i << ": " << string(message, length) << endl;
+                        socket.send(message, length, opCode);
+                    });
 
-                threadedServer[i]->onMessage([i](WebSocket socket, char *message, size_t length, OpCode opCode) {
-                    cout << "Message on thread " << i << ": " << string(message, length) << endl;
-                    socket.send(message, length, opCode);
-                });
-
-                tes.run();
+                    tes.run();
+                }
             });
         }
 
@@ -55,5 +61,9 @@ int main()
         cout << "ERR_LISTEN" << endl;
     }
 
+    return 0;
+
+fail:
+    cout << "ERR_LISTEN" << endl;
     return 0;
 }

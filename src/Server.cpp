@@ -131,8 +131,9 @@ void Server::closeHandler(Server *server)
     }
 }
 
-Server::Server(EventSystem &es, int port, unsigned int options, unsigned int maxPayload, SSLContext sslContext) : options(options), maxPayload(maxPayload), sslContext(sslContext), es(es)
+Server::Server(EventSystem &es, Error* outError, int port, unsigned int options, unsigned int maxPayload, SSLContext sslContext) : options(options), maxPayload(maxPayload), sslContext(sslContext), es(es)
 {
+    *outError = ERR_NONE;
     loop = es.loop;
     master = es.loopType == MASTER;
 
@@ -148,7 +149,8 @@ Server::Server(EventSystem &es, int port, unsigned int options, unsigned int max
     // todo: move this into PerMessageDeflate class
     writeStream = {};
     if (deflateInit2(&writeStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -15, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY) != Z_OK) {
-        throw ERR_ZLIB;
+      *outError = ERR_ZLIB;
+      return;
     }
 
     if (port) {
@@ -162,7 +164,8 @@ Server::Server(EventSystem &es, int port, unsigned int options, unsigned int max
 
         if (bind(listenFd, (sockaddr *) &listenAddr, sizeof(sockaddr_in)) || listen(listenFd, 10)) {
             deflateEnd(&writeStream);
-            throw ERR_LISTEN;
+            *outError = ERR_LISTEN;
+            return;
         }
 
         listenPoll = new uv_poll_t;
