@@ -4,6 +4,8 @@
 #include <string>
 #include <zlib.h>
 
+#include "Errors.h"
+
 enum ExtensionTokens {
     PERMESSAGE_DEFLATE = 1838,
     SERVER_NO_CONTEXT_TAKEOVER = 2807,
@@ -58,7 +60,8 @@ struct PerMessageDeflate {
         readStream.avail_in = srcLength;
     }
 
-    size_t inflate(char *dst, size_t dstLength) {
+    size_t inflate(char *dst, size_t dstLength, uWS::Error* outError) {
+        *outError = uWS::ERR_NONE;
         if (!readStream.avail_in) {
             return dstLength;
         }
@@ -66,7 +69,8 @@ struct PerMessageDeflate {
         readStream.avail_out = dstLength;
         int err = ::inflate(&readStream, Z_NO_FLUSH);
         if (err != Z_STREAM_END && err != Z_OK) {
-            throw err;
+            *outError = uWS::ERR_ZLIB;
+            return 0;
         }
         return readStream.avail_out;
     }
