@@ -19,6 +19,7 @@ target_link_libraries (uWS LINK_PUBLIC ${LIBUV_LIBRARY})
 target_link_libraries (uWS LINK_PUBLIC ${OPENSSL_SSL_LIBRARY})
 target_link_libraries (uWS LINK_PUBLIC ${OPENSSL_CRYPTO_LIBRARY})
 target_link_libraries (uWS LINK_PUBLIC ${ZLIB_LIBRARY})
+target_compile_options (uWS PUBLIC -fno-exceptions)
 
 if (UNIX)
 target_link_libraries (uWS LINK_PUBLIC pthread)
