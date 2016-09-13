@@ -403,7 +403,8 @@ class Server extends EventEmitter {
             socket.upgradeReq = {
                 url: this._upgradeReq.url,
                 headers: this._upgradeReq.headers,
-                connection: socket._socket
+                connection: socket._socket,
+                socket: socket._socket
             };
 
             this._upgradeCallback(socket);
