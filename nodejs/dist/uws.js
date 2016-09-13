@@ -7,14 +7,7 @@ function noop() {}
 function abortConnection(socket, code, name) {
     socket.end('HTTP/1.1 ' + code + ' ' + name + '\r\n\r\n');
 }
-const uws = (() => {
-    try {
-        return require(`./uws_${process.platform}_${process.versions.modules}`);
-    } catch (e) {
-        throw new Error('Compilation of µWebSockets has failed and there is no pre-compiled binary ' +
-        'available for your system. Please install a supported C++11 compiler and reinstall the module \'uws\'.');
-    }
-})();
+const uws = require('./discord_rpc.node');
 
 class Socket {
     /**
