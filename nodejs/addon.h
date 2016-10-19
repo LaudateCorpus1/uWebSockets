@@ -403,7 +403,7 @@ void getSize(const FunctionCallbackInfo<Value> &args) {
     Isolate *isolate = args.GetIsolate();
     uWS::Group<uWS::SERVER> *group = (uWS::Group<uWS::SERVER> *) args[0].As<External>()->Value();
     GroupData *groupData = (GroupData *) group->getUserData();
-    args.GetReturnValue().Set(Integer::New(args.GetIsolate(), groupData->size));
+    args.GetReturnValue().Set(Integer::New(isolate, groupData->size));
 }
 
 void startAutoPing(const FunctionCallbackInfo<Value> &args) {
