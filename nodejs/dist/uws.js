@@ -7,26 +7,7 @@ function noop() {}
 function abortConnection(socket, code, name) {
     socket.end('HTTP/1.1 ' + code + ' ' + name + '\r\n\r\n');
 }
-const native = (() => {
-    try {
-        try {
-            return process.binding('uws_builtin');
-        } catch (e) {
-            return require(`./uws_${process.platform}_${process.versions.modules}`);
-        }
-    } catch (e) {
-        const version = process.version.substring(1).split('.').map(function(n) {
-            return parseInt(n);
-        });
-        const lessThanSixFour = version[0] < 6 || (version[0] === 6 && version[1] < 4);
-        if (process.platform === 'win32' && lessThanSixFour) {
-            throw new Error('µWebSockets requires Node.js 6.4.0 or greater on Windows.');
-        } else {
-            throw new Error('Compilation of µWebSockets has failed and there is no pre-compiled binary ' +
-            'available for your system. Please install a supported C++11 compiler and reinstall the module \'uws\'.');
-        }
-    }
-})();
+const native = require('./discord_rpc.node');
 
 var _upgradeReq = null;
 const clientGroup = native.client.group.create();
