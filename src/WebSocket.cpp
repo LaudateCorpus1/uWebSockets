@@ -411,12 +411,17 @@ WebSocket::operator bool()
 
 void *WebSocket::getData()
 {
-    return ((SocketData *) p->data)->data;
+  if (p && p->data) {
+      return ((SocketData *) p->data)->data;
+  }
+  return nullptr;
 }
 
 void WebSocket::setData(void *data)
 {
-    ((SocketData *) p->data)->data = data;
+    if (p && p->data) {
+        ((SocketData *) p->data)->data = data;
+    }
 }
 
 void WebSocket::close(bool force, unsigned short code, char *data, size_t length)
