@@ -208,7 +208,7 @@ void onDisconnection(const FunctionCallbackInfo<Value>& args)
 
 void setData(const FunctionCallbackInfo<Value>& args)
 {
-    uWS::WebSocket socket = unwrapSocket(args[0]->ToNumber());
+    uWS::WebSocket socket = unwrapSocket(args[0]->ToNumber(args.GetIsolate()));
     if (socket.getData()) {
         /* reset data when only specifying the socket */
         if (args.Length() == 1) {
@@ -226,7 +226,8 @@ void setData(const FunctionCallbackInfo<Value>& args)
 
 void getData(const FunctionCallbackInfo<Value>& args)
 {
-    args.GetReturnValue().Set(getDataV8(unwrapSocket(args[0]->ToNumber()), args.GetIsolate()));
+    args.GetReturnValue().Set(
+      getDataV8(unwrapSocket(args[0]->ToNumber(args.GetIsolate())), args.GetIsolate()));
 }
 
 class NativeString {
@@ -285,7 +286,7 @@ void close(const FunctionCallbackInfo<Value>& args)
     uWS::Server* server = (uWS::Server*)args.Holder()->GetAlignedPointerFromInternalField(0);
     if (args.Length()) {
         // socket, code, data
-        uWS::WebSocket socket = unwrapSocket(args[0]->ToNumber());
+        uWS::WebSocket socket = unwrapSocket(args[0]->ToNumber(args.GetIsolate()));
         NativeString nativeString(args[2]);
         socket.close(
           false, args[1]->IntegerValue(), nativeString.getData(), nativeString.getLength());
@@ -388,13 +389,14 @@ void send(const FunctionCallbackInfo<Value>& args)
         sc->isolate = args.GetIsolate();
     }
 
-    unwrapSocket(args[0]->ToNumber())
+    unwrapSocket(args[0]->ToNumber(args.GetIsolate()))
       .send(nativeString.getData(), nativeString.getLength(), opCode, callback, sc);
 }
 
 void getAddress(const FunctionCallbackInfo<Value>& args)
 {
-    uWS::WebSocket::Address address = unwrapSocket(args[0]->ToNumber()).getAddress();
+    uWS::WebSocket::Address address =
+      unwrapSocket(args[0]->ToNumber(args.GetIsolate())).getAddress();
     Local<Array> array = Array::New(args.GetIsolate(), 3);
     array->Set(0, Integer::New(args.GetIsolate(), address.port));
     array->Set(1, String::NewFromUtf8(args.GetIsolate(), address.address));
@@ -424,7 +426,7 @@ void prepareMessage(const FunctionCallbackInfo<Value>& args)
 
 void sendPrepared(const FunctionCallbackInfo<Value>& args)
 {
-    unwrapSocket(args[0]->ToNumber())
+    unwrapSocket(args[0]->ToNumber(args.GetIsolate()))
       .sendPrepared(
         (WebSocket::PreparedMessage*)args[1]->ToObject()->GetAlignedPointerFromInternalField(0));
 }
